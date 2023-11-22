@@ -1,0 +1,27 @@
+import pyaudio
+import numpy as np
+import wave
+
+
+CHUNK = 2048
+FORMAT = pyaudio.paInt16
+CHANNELS = 2
+RATE = 48000
+
+audio_file_path = 'song1.wav'
+wave_file = wave.open(audio_file_path, 'rb')
+
+p = pyaudio.PyAudio()
+
+stream = p.open(
+        format=FORMAT,
+        channels=CHANNELS,
+        rate=RATE,
+        output=True,
+        frames_per_buffer=CHUNK
+        )
+
+
+while len(data := wave_file.readframes(CHUNK)):
+    stream.write(data)
+
