@@ -41,7 +41,7 @@ def load_song(number):
 
 
 def play_loaded_song():
-    num_chunks = math.floor(wave_file.getnframes() / CHUNK)
+    num_chunks = math.floor(wave_file.getnframes() / CHUNK) - 2
     for i in range(num_chunks):
         data = wave_file.readframes(CHUNK)
         stream.write(data)
@@ -80,6 +80,8 @@ def play_loaded_song():
         # plt.plot(fft_formatted)
         # plt.pause(0.001)
 
+        #Normalize output to max of 0 and min of -100
+        fft_formatted = np.clip(fft_formatted, -100, 0)
 
         network.sample_freqs = fft_formatted
 
