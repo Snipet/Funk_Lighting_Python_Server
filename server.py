@@ -19,6 +19,8 @@ NUM_SONGS = 9
 p = pyaudio.PyAudio()
 
 fft_buffer = fifobuffer.FifoBuffer(total_size=FFT_SIZE, chunk_size=CHUNK)
+audio_delay_buffer = np.zeros(28 * CHUNK, dtype=np.float32)
+audio_delay_buffer_index = 0
 
 stream = p.open(
         format=FORMAT,
@@ -41,9 +43,27 @@ def load_song(number):
 
 
 def play_loaded_song():
+    global audio_delay_buffer_index
     num_chunks = math.floor(wave_file.getnframes() / CHUNK) - 2
     for i in range(num_chunks):
         data = wave_file.readframes(CHUNK)
+        data_array = np.frombuffer(data, dtype=np.int16)
+        
+        # Write data_array to the audio_delay_buffer starting at audio_delay_buffer_index
+        audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+CHUNK] = data_array
+        # Increment audio_delay_buffer_index by CHUNK
+        audio_delay_buffer_index += CHUNK
+        # If audio_delay_buffer_index is greater than or equal to the length of audio_delay_buffer
+        if audio_delay_buffer_index >= len(audio_delay_buffer):
+            # Set audio_delay_buffer_index to 0
+            audio_delay_buffer_index = 0
+        
+        # Get the audio data from the audio_delay_buffer
+        data = audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+CHUNK]
+        # Convert the audio data to bytes
+        data = data.astype(np.int16).tobytes()
+        
+        
         stream.write(data)
 
         # Get the audio data but only the first channel

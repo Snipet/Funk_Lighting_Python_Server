@@ -22,6 +22,7 @@ class FifoBuffer:
         self.buffer[start_index:start_index + self.chunk_size] = data
         self.deque.append(slice(start_index, start_index + self.chunk_size))
 
+
     def get_buffer(self):
         return self.buffer
 

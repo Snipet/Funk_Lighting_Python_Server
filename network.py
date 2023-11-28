@@ -43,13 +43,32 @@ def diff_thread_send_freqs():
         if end_time - start_time < 1/30:
             time.sleep(1/30 - (end_time - start_time))
 
+def handle_client_request(address, message):
+    print("Client request from: " + str(address))
+    # Switch on the second byte of the message
+    match message[1]:
+        case b'\x01': # Send all node addresses
+            # Create a byte buffer with a header byte
+            message = b'\x01'
+            # Add all addresses to the byte buffer
+            for addr in addresses:
+                message += addr[0].encode('utf-8') + b'\x00' + str(addr[1]).encode('utf-8') + b'\x00'
+            UDPServerSocket.sendto(message, address)
+
+
 def main_network_thread():
     while True:
         bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
-        if address not in addresses:
-            addresses.append(address)
+        # Switch on the first byte of the message
+        match message[0]:
+            case b'\xFE':
+                if address not in addresses:
+                    addresses.append(address)
+            case b'\x01': # Request from a client computer
+                handle_client_request(address, message)
+
 
 network_thread = threading.Thread(target=main_network_thread)
 network_thread.start()
