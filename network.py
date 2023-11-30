@@ -66,8 +66,7 @@ def main_network_thread():
             case b'\xFE':
                 if address not in addresses:
                     addresses.append(address)
-            case b'\x01': # Request from a client computer
-                handle_client_request(address, message)
+                    print("Node added")
 
 
 network_thread = threading.Thread(target=main_network_thread)

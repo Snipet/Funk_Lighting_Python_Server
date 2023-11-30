@@ -9,6 +9,7 @@ import math
 
 
 CHUNK = 512
+DELAY_CHUNK = CHUNK * 2
 FFT_SIZE = 1024*4
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
@@ -19,7 +20,7 @@ NUM_SONGS = 9
 p = pyaudio.PyAudio()
 
 fft_buffer = fifobuffer.FifoBuffer(total_size=FFT_SIZE, chunk_size=CHUNK)
-audio_delay_buffer = np.zeros(28 * CHUNK, dtype=np.float32)
+audio_delay_buffer = np.zeros(24 * CHUNK, dtype=np.float32)
 audio_delay_buffer_index = 0
 
 stream = p.open(
@@ -50,18 +51,18 @@ def play_loaded_song():
         data_array = np.frombuffer(data, dtype=np.int16)
         
         # Write data_array to the audio_delay_buffer starting at audio_delay_buffer_index
-        audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+CHUNK] = data_array
+        audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+DELAY_CHUNK] = data_array
         # Increment audio_delay_buffer_index by CHUNK
-        audio_delay_buffer_index += CHUNK
+        audio_delay_buffer_index += DELAY_CHUNK
         # If audio_delay_buffer_index is greater than or equal to the length of audio_delay_buffer
         if audio_delay_buffer_index >= len(audio_delay_buffer):
             # Set audio_delay_buffer_index to 0
             audio_delay_buffer_index = 0
         
         # Get the audio data from the audio_delay_buffer
-        data = audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+CHUNK]
+        f_data = audio_delay_buffer[audio_delay_buffer_index:audio_delay_buffer_index+DELAY_CHUNK]
         # Convert the audio data to bytes
-        data = data.astype(np.int16).tobytes()
+        f_data = data.astype(np.int16).tobytes()
         
         
         stream.write(data)
